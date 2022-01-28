@@ -14,8 +14,20 @@ def import_list(filename: str):
     :param filename: str
     :return imported_list: numpy.ndarray
     """
+    # Check fileextension from last "." in the filename
+    for position, character in enumerate(filename[::-1]):
+        if character == '.':
+            file_extension = filename[-1-position:]
+            if verbose:
+                print('File extension: ', file_extension)
     with open(filename) as f:
-        imported_list = np.genfromtxt(f, dtype=str, delimiter=None)
+        if file_extension == '.txt':  # If it is a .txt
+            imported_list = np.genfromtxt(f, dtype=str, delimiter=None)
+        elif file_extension == '.csv':  # If it is a .csv
+            imported_list = np.genfromtxt(f, dtype=str, delimiter=',')
+        else:
+            print('What type of list is it? ')
+            return 1
     return imported_list
 
 
@@ -69,7 +81,6 @@ def pool_handler(n_processes=multiprocessing.cpu_count(), partial_lists=None, se
         print('Number of processes: ', n_processes)
     # search_string_list = [search_string] * len(partial_lists)
     list_string_pairs = []
-    print(partial_lists)
     for i in range(len(partial_lists)):
         list_string_pairs.append((partial_lists[i], search_string))
     p = Pool(n_processes)

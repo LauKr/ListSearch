@@ -28,7 +28,9 @@ def show_about_dialog():
 def show_help_dialog():
     text = "<h1>Help: List Searcher</h1>"\
         "<center>"\
-        "Further information"
+        "<p>Further information:</p>"\
+        "List can be in .txt or .csv format. For .txt each entry has to be in a new line. "\
+        "See default_list.* for an example."
     QMessageBox.about(window, "Help", text)
 
 
@@ -36,7 +38,8 @@ def open_file_name_dialog():
     options = QFileDialog.Options()
     options |= QFileDialog.DontUseNativeDialog
     file_name, _ = QFileDialog.getOpenFileName(window, "QFileDialog.getOpenFileName()", "",
-                                               "Text files (*.txt);;All Files (*)", options=options)
+                                               "Text files (*.txt);;Comma separated values (*.csv);;All Files (*)",
+                                               options=options)
     if file_name:
         print(file_name)
         window.label_ListPath.setText(file_name)
@@ -45,17 +48,27 @@ def open_file_name_dialog():
 
 def search_now():
     search_string = window.SearchString.text()
-    if search_string != '':
-        # Fails without warning if wrong name is given
-        n_cpus = multiprocessing.cpu_count()
-        results = search.run('default_list.txt', search_string, n_cpus)
-        print(results)
-        results = str(results)
-        window.textBrowser.setText(results)
-    else:
-        print('Please insert a search string first!')
+    file_name = window.label_ListPath.text()
+    if file_name == "List path:":  # If no List is selected and the initial label is present
+        print("No list selected.")
+        window.label_error.setText("Please select a list first.")
+        return 1
+    if search_string == '':
+        print("No search string is entered.")
+        window.label_error.setText("Please enter a search string first.")
         window.StartSearch.setDisabled(True)
         return 1
+    n_cpus = multiprocessing.cpu_count()
+    try:
+        results = search.run(file_name, search_string, n_cpus)
+        print(results)
+    except Exception as ex:
+        print(ex)
+        window.label_error.setText("Error occurred. See Help for further information")
+        return 1
+
+    results = str(results)
+    window.textBrowser.setText(results)
     return 0
 
 
